@@ -1,0 +1,11 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@using Zamin.Extensions.Translations.Abstractions
+
+<GridOperation OnClick="@OnClick">
+    <span>@Translator["EDIT"]</span>
+</GridOperation>
+
+@code {
+    [Inject] public ITranslator Translator { get; set; } = default!;
+    [Parameter, EditorRequired] public EventCallback<MouseEventArgs> OnClick { get; set; }
+}

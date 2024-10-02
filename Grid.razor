@@ -1,0 +1,138 @@
+﻿@using Riton.Context.Blaziton.Components.Paginations
+@typeparam TItem
+
+<CascadingValue Value="this" IsFixed="true">
+    @ChildContent
+</CascadingValue>
+
+<div class="table-responsive rounded-lg overflow-hidden">
+    <table id="@Id" class="table min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
+        <thead class="bg-gray-100 dark:bg-gray-700">
+            <tr>
+                @if (!DisableRowNumber)
+                {
+                    <th scope="col" class="p-4 text-sm font-medium text-center text-gray-500 uppercase dark:text-gray-400">
+                        <div>@Translator["ROW"]</div>
+                    </th>
+                }
+                @foreach (var column in Columns)
+                {
+                    <th scope="col" class="p-4 text-sm font-medium text-center text-gray-500 uppercase dark:text-gray-400">
+                        <span>@(column.Header)</span>
+                    </th>
+                }
+                @if (OperationColumn is not null)
+                {
+                    <th scope="col" class="p-4 text-sm font-medium text-center text-gray-500 uppercase dark:text-gray-400">
+                        <div>@Translator["OPERATION"]</div>
+                    </th>
+                }
+            </tr>
+        </thead>
+        @if (FetchingData is false && CurrentData is not null && CurrentData.Count is not 0)
+        {
+            var dataIndex = 0;
+            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                @foreach (var data in CurrentData)
+                {
+                    dataIndex += 1;
+                    var rowClass = RowClass?.Invoke(data) ?? string.Empty;
+                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 @rowClass"
+                        @key="data?.GetHashCode()"
+                        @onclick="async (args) => await OnRowClickHandler(data, args)"
+                        @ondblclick="async (args) => await OnRowDoubleClickHandler(data, args)"
+                        @oncontextmenu="async (args) => await OnRowContextMenuClickHandler(data, args)"
+                        role="@(OnRowClick.HasDelegate || OnRowDoubleClick.HasDelegate || OnRowContextMenuClick.HasDelegate ? "button" : string.Empty)">
+                        @if (!DisableRowNumber)
+                        {
+                            <td class="sm:w-5 p-2 text-sm sm:text-center text-gray-900 dark:text-white">
+                                <span class="sm:hidden">@Translator["ROW"]</span>
+                                <div>
+                                    @(dataIndex + ((CurrentPageNumber - 1) * PageSize))
+                                </div>
+                            </td>
+                        }
+                        @foreach (var column in Columns)
+                        {
+                            <td class="p-2 text-sm sm:text-center text-gray-900 dark:text-white">
+                                <span class="sm:hidden">@column.Header</span>
+                                <div>
+                                    @column.Content(data)
+                                </div>
+                            </td>
+                        }
+                        @if (OperationColumn is not null)
+                        {
+                            <td class="p-2 text-sm sm:text-center text-gray-900 dark:text-white text-center">
+                                <span class="sm:hidden">@Translator["OPERATION"]</span>
+                                <div>
+                                    <button type="button"
+                                            id="@($"grid-dropdown-button-{dataIndex}")"
+                                            data-dropdown-toggle="@($"grid-dropdown-content-{dataIndex}")"
+                                            class="inline-flex items-center p-1 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+                                        <svg class="w-5 h-5">
+                                            <use href="#dots-horizontal"></use>
+                                        </svg>
+                                    </button>
+                                    <div id="@($"grid-dropdown-content-{dataIndex}")" class="z-10 text-right hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
+                                        <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
+                                            @(OperationColumn.ChildContent(data))
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        }
+    </table>
+</div>
+
+@if (FetchingData)
+{
+    <div class="flex flex-col items-center justify-center gap-2 my-2">
+        <svg class="w-11 h-11 text-gray-400 animate-bounce">
+            <use href="#hourglass-outline">
+            </use>
+        </svg>
+        <div>
+            @if (string.IsNullOrWhiteSpace(FetchingDataText))
+            {
+                <span>@Translator["FETCHING_DATA"]</span>
+            }
+            else
+            {
+                <span> @(DisableTranslator ? FetchingDataText : Translator[FetchingDataText]) </span>
+            }
+        </div>
+    </div>
+}
+else if (CurrentData is null || CurrentData.Count is 0)
+{
+    <div class="flex flex-col items-center justify-center gap-2 my-2">
+        <svg class="w-11 h-11 text-gray-400">
+            <use href="#alert-outline">
+            </use>
+        </svg>
+        <div>
+            @if (string.IsNullOrWhiteSpace(EmptyDataText))
+            {
+                <span>@Translator["EMPTY_DATA"]</span>
+            }
+            else
+            {
+                <span> @(DisableTranslator ? EmptyDataText : Translator[EmptyDataText]) </span>
+            }
+        </div>
+    </div>
+}
+
+@if (CurrentData is not null && CurrentTotalCount > CurrentPageSize && !DisablePagination && !FetchingData)
+{
+    <Pagination @ref="Pagination"
+                PageNumber="CurrentPageNumber"
+                PageSize="CurrentPageSize"
+                TotalCount="CurrentTotalCount"
+                OnPageNumberChanged="PageNumberChangedHandler" />
+}

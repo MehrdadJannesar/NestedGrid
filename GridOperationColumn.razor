@@ -1,0 +1,11 @@
+﻿@typeparam TItem
+
+@code {
+    [CascadingParameter, EditorRequired] public Grid<TItem> Grid { get; set; } = default!;
+    [Parameter, EditorRequired] public RenderFragment<TItem> ChildContent { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        Grid.AddOperationColumn(this);
+    }
+}

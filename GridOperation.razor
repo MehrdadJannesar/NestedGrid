@@ -1,0 +1,29 @@
+﻿<li>
+    @if (string.IsNullOrWhiteSpace(Href))
+    {
+        <button type="button" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white mx-auto w-full @AdditionalClasses" @onclick="OnClickHandler">
+            @ChildContent
+        </button>
+    }
+    else
+    {
+        <a href="@Href" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white @AdditionalClasses" @onclick="OnClickHandler">
+            @ChildContent
+        </a>
+    }
+</li>
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter] public string? Href { get; set; }
+    [Parameter] public string AdditionalClasses { get; set; } = default!;
+
+    private async Task OnClickHandler()
+    {
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync();
+        }
+    }
+}

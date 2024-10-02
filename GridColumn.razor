@@ -1,0 +1,13 @@
+﻿@typeparam TItem
+
+@code {
+    [CascadingParameter, EditorRequired] public Grid<TItem> Grid { get; set; } = default!;
+
+    [Parameter, EditorRequired] public RenderFragment Header { get; set; } = default!;
+    [Parameter, EditorRequired] public RenderFragment<TItem> Content { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        Grid.AddColumn(this);
+    }
+}
